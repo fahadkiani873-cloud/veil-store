@@ -4,20 +4,20 @@
 //
 // Set this in your Vercel project settings, NOT in this file:
 //   Settings -> Environment Variables -> ZIINA_API_KEY = <your Ziina access token>
-
-export default async function handler(req, res) {
+ 
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
+ 
   try {
     const { amountFils, successUrl, cancelUrl, test } = req.body;
-
+ 
     if (!amountFils || amountFils < 200) {
       // Ziina's minimum charge is 2 AED = 200 fils
       return res.status(400).json({ error: 'Invalid amount' });
     }
-
+ 
     const ziinaRes = await fetch('https://api-v2.ziina.com/api/payment_intent', {
       method: 'POST',
       headers: {
@@ -32,14 +32,14 @@ export default async function handler(req, res) {
         test: !!test,                 // true while you're testing, remove/false to go live
       }),
     });
-
+ 
     const data = await ziinaRes.json();
-
+ 
     if (!ziinaRes.ok) {
       console.error('Ziina error:', data);
       return res.status(502).json({ error: data.message || 'Payment provider error' });
     }
-
+ 
     // Send only what the browser needs back — never the API key.
     return res.status(200).json({
       id: data.id,
@@ -49,4 +49,5 @@ export default async function handler(req, res) {
     console.error('create-payment error:', err);
     return res.status(500).json({ error: 'Something went wrong creating the payment.' });
   }
-}
+};
+ 
